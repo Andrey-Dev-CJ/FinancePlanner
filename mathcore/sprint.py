@@ -34,7 +34,7 @@ class SprintEngine:
             # события — начиная с сегодня.
             if is_current:
                 income_start = today + timedelta(days=1)
-                fixed = 0.0  # постоянные текущего цикла уже оплачены с открывающей выплаты
+                fixed = self._get_fixed_between(today + timedelta(days=1), sprint_end)
                 var_start = today
             else:
                 income_start = sprint_start
