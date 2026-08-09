@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>💰 Финансовый Планировщик</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-left">
+                <h1>💰 Финансовый Планировщик</h1>
+                <span class="subtitle">MathCore v1.0 | Модульная архитектура</span>
+            </div>
+            <div class="header-right">
+                <div class="balance-card">
+                    <span class="balance-label">Текущий баланс</span>
+                    <input type="number" id="currentBalance" class="balance-input" value="0">
+                    <button class="btn-mini" onclick="updateBalance()">✓</button>
+                </div>
+                <div class="balance-card credit">
+                    <span class="balance-label">Резервы</span>
+                    <input type="number" id="reserveEnvelopes" class="balance-input" value="0">
+                    <button class="btn-mini" onclick="updateReserve()">✓</button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Navigation Tabs -->
+        <nav class="tabs">
+            <button class="tab active" data-tab="dashboard">📊 Дашборд</button>
+            <button class="tab" data-tab="forecast">📈 Прогноз</button>
+            <button class="tab" data-tab="sprints">🏃 Спринты</button>
+            <button class="tab" data-tab="income">💵 Доходы</button>
+            <button class="tab" data-tab="calendar">📅 Календарь</button>
+            <button class="tab" data-tab="expenses">📋 Расходы</button>
+            <button class="tab" data-tab="events">🎯 События</button>
+            <button class="tab" data-tab="whatif">🔮 Что-если</button>
+            <button class="tab" data-tab="settings">⚙️ Настройки</button>
+        </nav>
+
+        <!-- Dashboard Tab -->
+        <section id="tab-dashboard" class="tab-content active">
+            <div class="dashboard-grid">
+                <div class="card summary-card">
+                    <h3>📋 Сводка месяца</h3>
+                    <div class="summary-grid" id="summaryGrid">
+                        <div class="summary-item loading">Загрузка...</div>
+                    </div>
+                </div>
+
+                <div class="card chart-card">
+                    <h3>🍩 Структура расходов</h3>
+                    <div class="chart-wrapper">
+                        <canvas id="expensePieChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="card chart-card">
+                    <h3>📊 Доходы vs Расходы</h3>
+                    <div class="chart-wrapper">
+                        <canvas id="incomeExpenseChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="card risks-card">
+                    <h3>⚠️ Риски и дефициты</h3>
+                    <div id="risksList" class="risks-list">
+                        <p class="loading">Загрузка...</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Forecast Tab -->
+        <section id="tab-forecast" class="tab-content">
+            <div class="card">
+                <h3>📈 Прогноз баланса</h3>
+                <div class="forecast-controls">
+                    <label>Период: 
+                        <select id="forecastDays">
+                            <option value="30" selected>30 дней</option>  <!-- selected вместо 90 -->
+                            <option value="60">60 дней</option>
+                            <option value="90">90 дней</option>
+                            <option value="180">180 дней</option>
+                            <option value="365">1 год</option>
+                        </select>
+                    </label>
+                    <button class="btn btn-primary" onclick="refreshForecast()">Обновить</button>
+                </div>
+                <canvas id="forecastChart" height="400"></canvas>
+                <div id="reserveInfo" class="reserve-info"></div>
+            </div>
+            <div class="card">
+                <h3>Точки дефицита</h3>
+                <div id="deficitsList" class="deficits-list">
+                    <p class="no-data">Дефицитов не обнаружено ✅</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Calendar Tab -->
+        <section id="tab-calendar" class="tab-content">
+            <div class="card">
+                <h3>📅 Финансовый календарь</h3>
+                <p class="hint">
+                    Клик по дню — новое событие · Перетащи событие — перенос на другую дату ·
+                    Клик по событию — редактирование · 💵/💳 — выплаты и постоянные расходы
+                </p>
+                <div id="calendar"></div>
+            </div>
+        </section>
+
+        <!-- Модальное окно события -->
+        <div id="eventModal" class="modal-overlay" style="display:none;">
+            <div class="modal">
+                <h3 id="modalTitle">Новое событие</h3>
+                <div class="form-group">
+                    <label>Название</label>
+                    <input type="text" id="modalName" class="input" placeholder="Например: Большой закуп">
+                </div>
+                <div class="form-group">
+                    <label>Сумма (₽)</label>
+                    <input type="number" id="modalAmount" class="input" placeholder="0">
+                </div>
+                <div class="form-group">
+                    <label>Дата</label>
+                    <input type="date" id="modalDate" class="input">
+                </div>
+                <div class="form-group">
+                    <label>Категория</label>
+                    <input type="text" id="modalCategory" class="input" placeholder="еда / подарки / учёба...">
+                </div>
+                <div class="form-group">
+                    <label class="checkbox-label" style="display:flex;gap:8px;align-items:center;cursor:pointer;">
+                        <input type="checkbox" id="modalRepeat"> Повторять ежемесячно
+                    </label>
+                </div>
+                <div class="form-group" id="repeatEndGroup" style="display:none;">
+                    <label>Серия до (включительно)</label>
+                    <input type="date" id="modalRepeatEnd" class="input">
+                </div>
+                <div class="modal-actions">
+                    <button class="btn btn-success" id="modalDone" style="display:none;">✓ Выполнено</button>
+                    <button class="btn btn-danger" id="modalDelete" style="display:none;">Удалить</button>
+                    <button class="btn btn-primary" id="modalSave">Сохранить</button>
+                    <button class="btn" id="modalClose">Отмена</button>
+                </div>
+            </div>
+        </div>
+
+        <script src="/static/app.js"></script>
+        <script src="/static/calendar.js"></script>
+
+        <!-- Sprints Tab -->
+        <section id="tab-sprints" class="tab-content">
+            <div class="card">
+                <h3>🏃 Спринты (периоды между выплатами)</h3>
+                <div class="forecast-controls">
+                    <label>Количество: 
+                        <select id="sprintCount">
+                            <option value="4">4 спринта</option>
+                            <option value="6" selected>6 спринтов</option>
+                            <option value="8">8 спринтов</option>
+                            <option value="12">12 спринтов (≈ полгода)</option>
+                            <option value="24">24 спринта (≈ год)</option>
+                        </select>
+                    </label>
+                    <button class="btn btn-primary" onclick="refreshSprints()">Обновить</button>
+                </div>
+                <div id="sprintsList" class="sprints-list">
+                    <p class="loading">Загрузка...</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Income Tab -->
+        <section id="tab-income" class="tab-content">
+            <div class="card">
+                <h3>💵 Источники дохода</h3>
+                <div class="add-form">
+                    <input type="text" id="incName" placeholder="Название" class="input">
+                    <input type="number" id="incAmount" placeholder="Сумма" class="input">
+                    <input type="number" id="incDay" placeholder="День (1-31)" min="1" max="31" class="input">
+                    <button class="btn btn-primary" onclick="addIncome()">+ Добавить</button>
+                </div>
+                <table class="data-table">
+                    <thead>
+                        <tr><th>Название</th><th>Сумма</th><th>День</th><th>Активен</th><th></th></tr>
+                    </thead>
+                    <tbody id="incomeTable">
+                        <tr><td colspan="5" class="loading">Загрузка...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Expenses Tab -->
+        <section id="tab-expenses" class="tab-content">
+            <div class="card">
+                <h3>📋 Постоянные расходы</h3>
+                <div class="add-form">
+                    <input type="text" id="feName" placeholder="Название" class="input">
+                    <input type="number" id="feAmount" placeholder="Сумма" class="input">
+                    <input type="number" id="feDay" placeholder="День (1-31)" min="1" max="31" class="input">
+                    <input type="text" id="feCategory" placeholder="Категория" class="input">
+                    <button class="btn btn-primary" onclick="addFixedExpense()">+ Добавить</button>
+                </div>
+                <table class="data-table">
+                    <thead>
+                        <tr><th>Название</th><th>Сумма</th><th>День</th><th>Категория</th><th></th></tr>
+                    </thead>
+                    <tbody id="fixedExpensesTable">
+                        <tr><td colspan="5" class="loading">Загрузка...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="card">
+                <h3>🛒 Переменные расходы (ежемесячно)</h3>
+                <div class="add-form">
+                    <input type="text" id="veName" placeholder="Название" class="input">
+                    <input type="number" id="veAmount" placeholder="Сумма/мес" class="input">
+                    <input type="text" id="veCategory" placeholder="Категория" class="input">
+                    <button class="btn btn-primary" onclick="addVariableExpense()">+ Добавить</button>
+                </div>
+                <table class="data-table">
+                    <thead>
+                        <tr><th>Название</th><th>Сумма/мес</th><th>Категория</th><th></th></tr>
+                    </thead>
+                    <tbody id="variableExpensesTable">
+                        <tr><td colspan="4" class="loading">Загрузка...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Events Tab -->
+        <section id="tab-events" class="tab-content">
+            <div class="card">
+                <h3>🎯 События (разовые траты)</h3>
+                <div class="add-form">
+                    <input type="text" id="evName" placeholder="Название" class="input">
+                    <input type="number" id="evAmount" placeholder="Сумма" class="input">
+                    <input type="date" id="evDate" class="input">
+                    <input type="text" id="evCategory" placeholder="Категория" class="input">
+                    <button class="btn btn-primary" onclick="addEvent()">+ Добавить</button>
+                </div>
+                <div id="eventsList" class="events-list">
+                    <p class="loading">Загрузка...</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- What-If Tab -->
+        <section id="tab-whatif" class="tab-content">
+            <div class="card">
+                <h3>🔮 Что-если анализ</h3>
+                <p class="hint">Проверь, как изменения повлияют на прогноз</p>
+                <div class="whatif-form">
+                    <div class="form-group">
+                        <label>Дополнительный доход:</label>
+                        <input type="number" id="whatIfIncome" placeholder="0" class="input">
+                    </div>
+                    <div class="form-group">
+                        <label>Дополнительный расход:</label>
+                        <input type="number" id="whatIfExpense" placeholder="0" class="input">
+                    </div>
+                    <button class="btn btn-primary" onclick="runWhatIf()">Рассчитать</button>
+                </div>
+                <div id="whatIfResult" class="whatif-result" style="display:none;">
+                    <h4>Результат:</h4>
+                    <div id="whatIfContent"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Settings Tab -->
+        <section id="tab-settings" class="tab-content">
+            <div class="card">
+                <h3>⚙️ Настройки расписания</h3>
+                <div class="settings-form">
+                    <div class="form-group">
+                        <label>Дни выплат (через запятую):</label>
+                        <input type="text" id="payDays" placeholder="5,20" class="input">
+                    </div>
+                    <button class="btn btn-primary" onclick="updatePayDays()">Сохранить</button>
+                </div>
+            </div>
+            <div class="card">
+                <h3>📥 Импорт/Экспорт конфигурации</h3>
+                <div class="settings-form">
+                    <button class="btn btn-primary" onclick="exportConfig()">Экспорт JSON</button>
+                    <label class="btn btn-primary">
+                        Импорт JSON
+                        <input type="file" id="importFile" style="display:none" onchange="importConfig(event)">
+                    </label>
+                </div>
+            </div>
+        </section>
+    </div>
+    
+    <!--<script src="/static/app.js"></script>-->
+    <script src="/static/app.js?v=3"></script>
+    <script src="/static/calendar.js?v=3"></script>
+</body>
+</html>
