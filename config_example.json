@@ -5,11 +5,11 @@
   },
   "pay_days": [5, 20],
   "income_sources": [
-    {"id": "inc1", "name": "Аванс", "amount": 38000, "day_of_month": 5, "active": true},
-    {"id": "inc2", "name": "Зарплата", "amount": 45000, "day_of_month": 20, "active": true}
+    {"id": "inc1", "name": "Аванс", "amount": 45000, "day_of_month": 5, "active": true},
+    {"id": "inc2", "name": "ЗП", "amount": 45000, "day_of_month": 20, "active": true}
   ],
   "fixed_expenses": [
-    {"id": "fe1", "name": "Кредит", "amount": 43000, "day_of_month": 25, "active": true},
+    {"id": "fe1", "name": "Something", "amount": 43000, "day_of_month": 25, "active": true},
     {"id": "fe2", "name": "ЖКХ", "amount": 3500, "day_of_month": 10, "active": true},
     {"id": "fe3", "name": "Интернет", "amount": 1000, "day_of_month": 1, "active": true},
     {"id": "fe4", "name": "Моб. связь", "amount": 1510, "day_of_month": 1, "active": true},
@@ -22,14 +22,7 @@
   ],
   "events": [
     {"id": "ev1", "name": "Мини-закуп", "amount": 3500, "date": "2026-08-10", "status": "planned"},
-    {"id": "ev2", "name": "Поездка в ГУАП", "amount": 1500, "date": "2026-08-16", "status": "planned"},
-    {"id": "ev3", "name": "Пошлина загранпаспорт", "amount": 6000, "date": "2026-08-21", "status": "planned"},
-    {"id": "ev4", "name": "Большой закуп", "amount": 8000, "date": "2026-08-22", "status": "planned"},
-    {"id": "ev5", "name": "Свадебный подарок", "amount": 5000, "date": "2026-08-28", "status": "planned"},
-    {"id": "ev6", "name": "Стрижка", "amount": 2300, "date": "2026-08-28", "status": "planned"},
-    {"id": "ev7", "name": "Студенческий БСК", "amount": 1500, "date": "2026-08-29", "status": "planned"},
-    {"id": "ev8", "name": "Букет на свадьбу", "amount": 4000, "date": "2026-09-05", "status": "planned"},
-    {"id": "ev9", "name": "Рыбалка Сегозеро", "amount": 13000, "date": "2026-09-26", "status": "planned"},
-    {"id": "ev10", "name": "Посылка в Чехию", "amount": 6000, "date": "2026-10-10", "status": "planned"}
+    {"id": "ev2", "name": "Поездка", "amount": 1500, "date": "2026-08-16", "status": "planned"}
+  
   ]
 }   
