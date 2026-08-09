@@ -178,7 +178,7 @@ def delete_account():
     return jsonify({'status': 'ok'})
 
 
-    
+
 @app.route('/api/me')
 @login_required
 def me():
@@ -407,6 +407,12 @@ def update_balance():
     save_core()
     return jsonify({'status': 'ok'})
 
+
+
+@app.route('/privacy')
+def privacy():
+    """Публичная страница политики конфиденциальности."""
+    return render_template('privacy.html')
 
 if __name__ == '__main__':
     print("=" * 50)

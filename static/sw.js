@@ -1,4 +1,4 @@
-const CACHE = 'finplan-v1';
+const CACHE = 'finplan-v2';
 self.addEventListener('fetch', (e) => {
     if (e.request.method !== 'GET') return;
     const url = new URL(e.request.url);

@@ -4,6 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>💰 Финансовый Планировщик</title>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" sizes="192x192" href="/static/icons/icon-192.png">
+    <link rel="icon" type="image/svg+xml" href="/static/icons/icon.svg">
+    <link rel="shortcut icon" href="/static/icons/icon-192.png">
+
     <meta name="theme-color" content="#6c63ff">
     <link rel="manifest" href="/static/manifest.webmanifest">
     <link rel="apple-touch-icon" href="/static/icons/icon.svg">
@@ -163,9 +169,7 @@
             </div>
         </div>
 
-        <script src="/static/app.js"></script>
-        <script src="/static/calendar.js"></script>
-
+        
         <!-- Sprints Tab -->
         <section id="tab-sprints" class="tab-content">
             <div class="card">
@@ -290,6 +294,24 @@
 
         <!-- Settings Tab -->
         <section id="tab-settings" class="tab-content">
+            <!-- Приватность -->
+            <div class="card">
+                <h3>🔐 Приватность</h3>
+
+                <div class="privacy-box">
+                    <div class="privacy-icon">🛡️</div>
+                    <div class="privacy-text">
+                        <strong>Ваши данные — только ваши.</strong>
+                        <p>Мы не собираем e-mail, телефон и банковские реквизиты.
+                        Хранятся лишь логин, хеш пароля и введённый вами бюджет.
+                        Удалить всё можно одной кнопкой в разделе «Аккаунт».</p>
+                    </div>
+                </div>
+
+                <div class="privacy-actions">
+                    <a class="btn" href="/privacy" target="_blank">📄 Политика конфиденциальности</a>
+                </div>
+            </div>
             <div class="card">
                 <h3>⚙️ Настройки расписания</h3>
                 <div class="settings-form">

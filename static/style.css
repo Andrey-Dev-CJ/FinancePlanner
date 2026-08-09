@@ -778,3 +778,46 @@ body {
 #calendar .fc-day-other .fc-daygrid-day-number { opacity: 0.4; }
 #calendar .fc-event { cursor: pointer; border-radius: 6px; padding: 1px 4px; }
 #calendar .fc-daygrid-day-frame { min-height: 90px; }
+
+
+/* ===== Приватность ===== */
+.privacy-box {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-bottom: 14px;
+}
+
+.privacy-icon {
+    font-size: 1.6rem;
+    line-height: 1;
+}
+
+.privacy-text strong {
+    color: var(--text-primary);
+    font-size: .95rem;
+}
+
+.privacy-text p {
+    color: var(--text-secondary);
+    font-size: .85rem;
+    line-height: 1.6;
+    margin-top: 4px;
+}
+
+.privacy-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.privacy-actions .btn {
+    text-decoration: none;      /* чтобы ссылка-кнопка не подчёркивалась */
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
