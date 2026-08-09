@@ -14,6 +14,24 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 from mathcore import MathCore
 
+from models_db import db
+from flask_migrate import Migrate
+
+from models_db import User, UserConfig
+from mathcore.db_adapter import load_config_from_db, save_config_to_db
+
+_cores = {}
+
+
+def get_core() -> MathCore:
+    uid = session['uid']
+    if uid not in _cores:
+        user_config = UserConfig.query.get(uid)
+        if not user_config:
+            user_config = UserConfig(user_id=uid, pay_days=[5, 20])
+            db.session.add(user_config)
+            db.session.commit()
+
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('FINPLAN_SECRET', 'dev-secret-change-me')
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
@@ -24,6 +42,17 @@ DATA_DIR = os.path.join(BASE_DIR, 'data')
 USERS_FILE = os.path.join(DATA_DIR, 'users.json')
 LEGACY_CONFIG = os.path.join(BASE_DIR, 'config.json')
 os.makedirs(DATA_DIR, exist_ok=True)
+
+
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///finance.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+db.init_app(app)
+migrate = Migrate(app, db)
+
+# Создать таблицы при первом запуске
+with app.app_context():
+    db.create_all()
 
 # ================= ПОЛЬЗОВАТЕЛИ И PER-USER ЯДРО =================
 
