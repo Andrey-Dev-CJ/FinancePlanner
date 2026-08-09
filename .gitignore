@@ -2,6 +2,6 @@ __pycache__/
 mathcore/__pycache__/
 tests/__pycache__/
 
-
+*.bak
 .pytest_cache/
 config.json

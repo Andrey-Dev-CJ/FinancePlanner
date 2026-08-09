@@ -2,7 +2,8 @@
 MathCore Forecast — прогнозирование баланса по дням.
 Чистая математика: вход = конфиг, выход = массив точек.
 """
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
+import calendar as _cal
 from typing import List, Dict
 from .models import FinancialConfig, EventStatus, expand_events
 
@@ -144,17 +145,17 @@ class ForecastEngine:
         return events_map
 
     def _get_month_events_cost(self, month_offset: int) -> float:
-        """Сумма событий в месяце со смещением month_offset от текущего."""
-        from datetime import date
+        """
+        Сумма событий в месяце со смещением month_offset от текущего.
+        Месячные серии (repeat='monthly') раскрываются через expand_events:
+        месяц получает все вхождения серии, а не только базовую дату.
+        """
         today = date.today()
-        target_month = today.month + month_offset
-        target_year = today.year + (target_month - 1) // 12
-        target_month = ((target_month - 1) % 12) + 1
+        mi = today.month - 1 + month_offset
+        year = today.year + mi // 12
+        month = mi % 12 + 1
 
-        total = 0
-        for ev in self.config.events:
-            if ev.status == EventStatus.PLANNED:
-                ev_date = datetime.strptime(ev.date, '%Y-%m-%d').date()
-                if ev_date.month == target_month and ev_date.year == target_year:
-                    total += ev.amount
-        return total
+        start = datetime(year, month, 1)
+        end = datetime(year, month, _cal.monthrange(year, month)[1])
+
+        return sum(occ['amount'] for occ in expand_events(self.config.events, start, end))
