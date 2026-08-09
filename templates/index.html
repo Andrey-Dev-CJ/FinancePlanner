@@ -4,9 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>💰 Финансовый Планировщик</title>
+    <meta name="theme-color" content="#6c63ff">
+    <link rel="manifest" href="/static/manifest.webmanifest">
+    <link rel="apple-touch-icon" href="/static/icons/icon.svg">
+    <meta name="apple-mobile-web-app-capable" content="yes">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
     <link rel="stylesheet" href="/static/style.css">
+    
 </head>
 <body>
     <div class="app-container">
@@ -22,10 +27,15 @@
                     <input type="number" id="currentBalance" class="balance-input" value="0">
                     <button class="btn-mini" onclick="updateBalance()">✓</button>
                 </div>
+                
                 <div class="balance-card credit">
                     <span class="balance-label">Резервы</span>
                     <input type="number" id="reserveEnvelopes" class="balance-input" value="0">
                     <button class="btn-mini" onclick="updateReserve()">✓</button>
+                </div>
+                <div class="header-user" style="display:flex;gap:8px;align-items:center;">
+                        <span id="userName" style="color:var(--text-secondary);font-size:.9rem;"></span>
+                        <button class="btn" id="logoutBtn" style="display:none;">Выйти</button>
                 </div>
             </div>
         </header>
@@ -300,11 +310,52 @@
                     </label>
                 </div>
             </div>
+            <!-- Аккаунт -->
+            <div class="card">
+                <h3>👤 Аккаунт</h3>
+
+                <div class="form-group">
+                    <label>Текущий пароль</label>
+                    <input type="password" id="curPass" class="input" autocomplete="current-password">
+                </div>
+                <div class="form-group">
+                    <label>Новый пароль (мин. 6 символов)</label>
+                    <input type="password" id="newPass" class="input" autocomplete="new-password">
+                </div>
+                <div class="form-group">
+                    <label>Повторите новый пароль</label>
+                    <input type="password" id="newPass2" class="input" autocomplete="new-password">
+                </div>
+                <button class="btn btn-primary" onclick="changePassword()">🔑 Сменить пароль</button>
+
+                <hr style="border:none;border-top:1px solid var(--border);margin:18px 0;">
+
+                <div class="form-group">
+                    <label>Новый логин (мин. 3 символа)</label>
+                    <input type="text" id="newLogin" class="input">
+                </div>
+                <div class="form-group">
+                    <label>Пароль (для подтверждения)</label>
+                    <input type="password" id="loginPass" class="input">
+                </div>
+                <button class="btn" onclick="changeUsername()">✏️ Сменить логин</button>
+
+                <hr style="border:none;border-top:1px solid var(--border);margin:18px 0;">
+
+                <div class="form-group">
+                    <label>Пароль (подтверждение удаления)</label>
+                    <input type="password" id="deletePass" class="input">
+                </div>
+                <button class="btn btn-danger" onclick="deleteAccount()">🗑 Удалить аккаунт и все данные</button>
+            </div>
         </section>
     </div>
     
     <!--<script src="/static/app.js"></script>-->
     <script src="/static/app.js?v=3"></script>
     <script src="/static/calendar.js?v=3"></script>
+    <script>
+        if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js');
+    </script>
 </body>
 </html>

@@ -1,6 +1,7 @@
 __pycache__/
 mathcore/__pycache__/
 tests/__pycache__/
+data/
 
 *.bak
 .pytest_cache/

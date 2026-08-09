@@ -39,6 +39,7 @@ const periodShadingPlugin = {
 
 // ==================== INIT ====================
 document.addEventListener('DOMContentLoaded', async () => {
+    await loadMe();
     await loadConfig();
     initTabs();
     initAutoUpdate();
@@ -47,6 +48,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 async function loadConfig() {
     const res = await fetch('/api/config');
+    if (res.status === 401) { location.href = '/'; return; }
     config = await res.json();
     updateBalanceDisplay();
     renderAll();
@@ -733,4 +735,67 @@ function formatMoney(amount) {
 function formatDate(dateStr) {
     const date = new Date(dateStr);
     return date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short', year: 'numeric' });
+}
+
+
+async function loadMe() {
+    const res = await fetch('/api/me');
+    if (!res.ok) return;
+    const me = await res.json();
+    const el = document.getElementById('userName');
+    if (el) el.textContent = '👤 ' + me.username;
+    const btn = document.getElementById('logoutBtn');
+    if (btn) {
+        btn.style.display = 'inline-block';
+        btn.onclick = async () => {
+            await fetch('/auth/logout', { method: 'POST' });
+            location.href = '/';
+        };
+    }
+}
+
+
+// ==================== ACCOUNT ====================
+async function changePassword() {
+    const cur = document.getElementById('curPass').value;
+    const nw = document.getElementById('newPass').value;
+    const nw2 = document.getElementById('newPass2').value;
+    if (!cur) { alert('Введите текущий пароль'); return; }
+    if (nw.length < 6) { alert('Новый пароль — минимум 6 символов'); return; }
+    if (nw !== nw2) { alert('Новые пароли не совпадают'); return; }
+    const res = await fetch('/auth/change-password', {
+        method: 'POST', headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ current_password: cur, new_password: nw })
+    });
+    const data = await res.json();
+    if (!res.ok) { alert(data.error || 'Ошибка'); return; }
+    alert('✅ Пароль изменён');
+    ['curPass', 'newPass', 'newPass2'].forEach(id => document.getElementById(id).value = '');
+}
+
+async function changeUsername() {
+    const newName = document.getElementById('newLogin').value.trim();
+    const pass = document.getElementById('loginPass').value;
+    if (newName.length < 3) { alert('Логин — минимум 3 символа'); return; }
+    const res = await fetch('/auth/change-username', {
+        method: 'POST', headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ new_username: newName, password: pass })
+    });
+    const data = await res.json();
+    if (!res.ok) { alert(data.error || 'Ошибка'); return; }
+    alert('✅ Логин изменён');
+    location.reload();
+}
+
+async function deleteAccount() {
+    if (!confirm('Удалить аккаунт и ВСЕ данные безвозвратно?')) return;
+    if (!confirm('Точно? События, расходы и настройки будут стёрты.')) return;
+    const pass = document.getElementById('deletePass').value;
+    const res = await fetch('/auth/delete-account', {
+        method: 'POST', headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ password: pass })
+    });
+    const data = await res.json();
+    if (!res.ok) { alert(data.error || 'Ошибка'); return; }
+    location.href = '/';
 }
