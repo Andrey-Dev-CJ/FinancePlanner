@@ -48,8 +48,9 @@ def get_config():
         ],
         'events': [
             {'id': e.id, 'name': e.name, 'amount': e.amount,
-             'date': e.date, 'status': e.status.value,
-             'category': e.category, 'notes': e.notes}
+            'date': e.date, 'status': e.status.value,
+            'category': e.category, 'notes': e.notes,
+            'repeat': e.repeat, 'repeat_end': e.repeat_end}   # ← добавить
             for e in core.config.events
         ],
         'pay_days': core.config.pay_schedule.pay_days,

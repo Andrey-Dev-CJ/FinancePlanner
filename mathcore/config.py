@@ -2,6 +2,8 @@
 MathCore Config — загрузка и валидация конфигурации.
 Поддержка JSON-файлов и программного создания.
 """
+import os
+import shutil
 import json
 import uuid
 from pathlib import Path
@@ -10,6 +12,8 @@ from .models import (
     FinancialConfig, IncomeSource, FixedExpense,
     VariableExpense, Event, PaySchedule, EventStatus
 )
+
+
 
 
 class ConfigLoader:
@@ -33,39 +37,42 @@ class ConfigLoader:
         return ConfigLoader._parse_raw(raw)
     
     @staticmethod
-    def to_json(config: FinancialConfig, filepath: str):
-        """Сохраняет конфиг в JSON."""
-        data = {
-            'initial_balance': config.initial_balance,
-            'reserve_envelopes': config.reserve_envelopes,
-            'pay_days': config.pay_schedule.pay_days,
-            'income_sources': [
-                {'id': i.id, 'name': i.name, 'amount': i.amount,
-                 'day_of_month': i.day_of_month, 'active': i.active}
-                for i in config.income_sources
-            ],
-            'fixed_expenses': [
-                {'id': e.id, 'name': e.name, 'amount': e.amount,
-                 'day_of_month': e.day_of_month, 'active': e.active,
-                 'category': e.category}
-                for e in config.fixed_expenses
-            ],
-            'variable_expenses': [
-                {'id': e.id, 'name': e.name, 'amount_per_month': e.amount_per_month,
-                 'category': e.category, 'active': e.active}
-                for e in config.variable_expenses
-            ],
-            'events': [
-                {'id': e.id, 'name': e.name, 'amount': e.amount,
-                 'date': e.date, 'status': e.status.value,
-                 'category': e.category, 'notes': e.notes,
-                 'repeat': e.repeat, 'repeat_end': e.repeat_end}
-                for e in config.events
-            ]
-        }
-        
-        with open(filepath, 'w', encoding='utf-8') as f:
-            json.dump(data, f, ensure_ascii=False, indent=2)
+def to_json(config: FinancialConfig, filepath: str):
+    """Сохраняет конфиг в JSON с бэкапом предыдущей версии."""
+    if os.path.exists(filepath):
+        shutil.copy(filepath, filepath + '.bak')
+    
+    data = {
+        'initial_balance': config.initial_balance,
+        'reserve_envelopes': config.reserve_envelopes,
+        'pay_days': config.pay_schedule.pay_days,
+        'income_sources': [
+            {'id': i.id, 'name': i.name, 'amount': i.amount,
+             'day_of_month': i.day_of_month, 'active': i.active}
+            for i in config.income_sources
+        ],
+        'fixed_expenses': [
+            {'id': e.id, 'name': e.name, 'amount': e.amount,
+             'day_of_month': e.day_of_month, 'active': e.active,
+             'category': e.category}
+            for e in config.fixed_expenses
+        ],
+        'variable_expenses': [
+            {'id': e.id, 'name': e.name, 'amount_per_month': e.amount_per_month,
+             'category': e.category, 'active': e.active}
+            for e in config.variable_expenses
+        ],
+        'events': [
+            {'id': e.id, 'name': e.name, 'amount': e.amount,
+             'date': e.date, 'status': e.status.value,
+             'category': e.category, 'notes': e.notes,
+             'repeat': e.repeat, 'repeat_end': e.repeat_end}
+            for e in config.events
+        ]
+    }
+    
+    with open(filepath, 'w', encoding='utf-8') as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
     
     @staticmethod
     def empty_config() -> FinancialConfig:
