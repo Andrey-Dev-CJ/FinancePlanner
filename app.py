@@ -18,6 +18,7 @@ from mathcore import MathCore
 from models_db import db, User, UserConfig
 from mathcore.db_adapter import load_config_from_db, save_config_to_db
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for, g
+from sqlalchemy import event
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('FINPLAN_SECRET', 'dev-secret-change-me')
