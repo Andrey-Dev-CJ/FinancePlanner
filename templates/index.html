@@ -33,17 +33,20 @@
             </div>
             <div class="header-right">
                 <div class="balance-card">
-                    <span class="balance-label">Текущий баланс</span>
-                    <input type="number" id="currentBalance" class="balance-input" value="0">
-                    <button class="btn-mini" onclick="updateBalance()">✓</button>
+                    <div class="balance-input-wrapper">
+                        <input type="number" id="currentBalance" class="balance-input" value="0">
+                        <button class="btn-mini" onclick="updateBalance()">✓</button>
+                    </div>
                 </div>
                 
                 <div class="balance-card credit">
                     <span class="balance-label">Резервы</span>
-                    <input type="number" id="reserveEnvelopes" class="balance-input" value="0">
-                    <button class="btn-mini" onclick="updateReserve()">✓</button>
-                </div>
-                <div class="header-user" style="display:flex;gap:8px;align-items:center;">
+                    <div class="balance-input-wrapper"></div>
+                        <input type="number" id="reserveEnvelopes" class="balance-input" value="0">
+                        <button class="btn-mini" onclick="updateReserve()">✓</button>
+                    </div>
+                </div>  
+                <div class="header-user">
                         <span id="userName" style="color:var(--text-secondary);font-size:.9rem;"></span>
                         <button class="btn" id="logoutBtn" style="display:none;">Выйти</button>
                 </div>
