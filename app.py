@@ -17,6 +17,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from mathcore import MathCore
 from models_db import db, User, UserConfig
 from mathcore.db_adapter import load_config_from_db, save_config_to_db
+from flask import Flask, render_template, request, jsonify, session, redirect, url_for, g
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('FINPLAN_SECRET', 'dev-secret-change-me')
@@ -27,7 +28,7 @@ CORS(app)
 db.init_app(app)
 migrate = Migrate(app, db)
 
-_cores = {}
+
 
 # ================= ВСПОМОГАТЕЛЬНОЕ =================
 
@@ -42,27 +43,31 @@ def login_required(f):
     return wrapped
 
 def get_core() -> MathCore:
-    """Per-user экземпляр MathCore, загруженный из БД."""
-    uid = session['uid']
-    if uid not in _cores:
+    """Per-request экземпляр MathCore: свежий из БД на каждый запрос.
+    В пределах одного запроса — один и тот же объект (быстро и консистентно).
+    Между запросами и воркерами состояние не живёт → можно масштабироваться."""
+    core = getattr(g, 'mathcore', None)
+    if core is None:
+        uid = session['uid']
         user_config = db.session.get(UserConfig, uid)
         if not user_config:
             user_config = UserConfig(user_id=uid, initial_balance=0.0,
                                      pay_days=[5, 20], reserve_envelopes={})
             db.session.add(user_config)
             db.session.commit()
-        _cores[uid] = MathCore(load_config_from_db(user_config))
-    return _cores[uid]
+        core = MathCore(load_config_from_db(user_config))
+        g.mathcore = core
+    return core
 
 def save_core():
-    """Сохраняет изменения из MathCore обратно в БД."""
+    """Сохраняет изменения MathCore ТЕКУЩЕГО запроса в БД."""
     uid = session['uid']
     user_config = db.session.get(UserConfig, uid)
     if not user_config:
         user_config = UserConfig(user_id=uid, pay_days=[5, 20], reserve_envelopes={})
         db.session.add(user_config)
         db.session.flush()
-    save_config_to_db(db.session, user_config, _cores[uid].config)
+    save_config_to_db(db.session, user_config, get_core().config)
 
 # ================= СТРАНИЦЫ =================
 
@@ -175,7 +180,6 @@ def delete_account():
         db.session.delete(cfg)   # cascade удалит доходы/расходы/события
     db.session.delete(user)
     db.session.commit()
-    _cores.pop(uid, None)
     session.clear()
     return jsonify({'status': 'ok'})
 
