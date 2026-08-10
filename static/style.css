@@ -25,6 +25,8 @@ body {
     color: var(--text-primary);
     min-height: 100vh;
     line-height: 1.6;
+    -webkit-tap-highlight-color: transparent;
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
 }
 
 .app-container {
@@ -33,7 +35,7 @@ body {
     padding: 20px;
 }
 
-/* Header */
+/* ===== Header ===== */
 .header {
     display: flex;
     justify-content: space-between;
@@ -112,7 +114,7 @@ body {
     background: var(--accent-hover);
 }
 
-/* Tabs */
+/* ===== Tabs ===== */
 .tabs {
     display: flex;
     gap: 5px;
@@ -121,6 +123,12 @@ body {
     padding: 5px;
     border-radius: 12px;
     overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+}
+
+.tabs::-webkit-scrollbar {
+    display: none;
 }
 
 .tab {
@@ -133,6 +141,10 @@ body {
     font-size: 0.9rem;
     transition: all 0.3s;
     white-space: nowrap;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .tab:hover {
@@ -145,7 +157,7 @@ body {
     color: white;
 }
 
-/* Tab Content */
+/* ===== Tab Content ===== */
 .tab-content {
     display: none;
 }
@@ -154,7 +166,7 @@ body {
     display: block;
 }
 
-/* Cards */
+/* ===== Cards ===== */
 .card {
     background: var(--bg-card);
     border-radius: 16px;
@@ -170,22 +182,36 @@ body {
     color: var(--text-primary);
 }
 
-/* Dashboard Grid */
+/* ===== Dashboard Grid ===== */
 .dashboard-grid {
     display: grid;
-    grid-template-columns: 2fr 1fr;
+    grid-template-columns: 1fr 1fr;
     gap: 20px;
 }
 
-.chart-card {
-    min-height: 350px;
-}
-
-.dashboard-grid .card:nth-child(1) {
+.dashboard-grid .summary-card,
+.dashboard-grid .risks-card {
     grid-column: 1 / -1;
 }
 
-/* Forms */
+.chart-card {
+    display: flex;
+    flex-direction: column;
+    min-height: 400px;
+}
+
+.chart-card h3 {
+    margin-bottom: 12px;
+}
+
+.chart-wrapper {
+    position: relative;
+    flex: 1;
+    height: 300px;
+    max-height: 300px;
+}
+
+/* ===== Forms ===== */
 .add-form {
     display: flex;
     gap: 10px;
@@ -202,6 +228,7 @@ body {
     font-size: 0.9rem;
     flex: 1;
     min-width: 120px;
+    min-height: 44px;
 }
 
 .input:focus {
@@ -209,7 +236,7 @@ body {
     border-color: var(--accent);
 }
 
-/* Buttons */
+/* ===== Buttons ===== */
 .btn {
     padding: 10px 20px;
     border: none;
@@ -218,6 +245,11 @@ body {
     font-size: 0.9rem;
     transition: all 0.3s;
     font-weight: 500;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
 }
 
 .btn-primary {
@@ -233,8 +265,8 @@ body {
 .btn-danger {
     background: var(--danger);
     color: white;
-    padding: 5px 10px;
-    font-size: 0.8rem;
+    padding: 8px 14px;
+    font-size: 0.85rem;
 }
 
 .btn-danger:hover {
@@ -244,14 +276,20 @@ body {
 .btn-success {
     background: var(--success);
     color: white;
-    padding: 5px 10px;
-    font-size: 0.8rem;
+    padding: 8px 14px;
+    font-size: 0.85rem;
 }
 
-/* Tables */
+/* ===== Tables ===== */
+.data-table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
 .data-table {
     width: 100%;
     border-collapse: collapse;
+    min-width: 600px;
 }
 
 .data-table th,
@@ -259,6 +297,7 @@ body {
     padding: 12px 16px;
     text-align: left;
     border-bottom: 1px solid var(--border);
+    white-space: nowrap;
 }
 
 .data-table th {
@@ -272,7 +311,7 @@ body {
     background: rgba(108, 99, 255, 0.05);
 }
 
-/* Events */
+/* ===== Events ===== */
 .events-list {
     display: flex;
     flex-direction: column;
@@ -288,6 +327,8 @@ body {
     border-radius: 10px;
     border-left: 4px solid var(--accent);
     transition: transform 0.2s;
+    flex-wrap: wrap;
+    gap: 10px;
 }
 
 .event-item:hover {
@@ -305,6 +346,7 @@ body {
 
 .event-info {
     flex: 1;
+    min-width: 200px;
 }
 
 .event-name {
@@ -322,19 +364,20 @@ body {
     margin-right: 15px;
 }
 
-/* Risks */
+/* ===== Risks ===== */
 .risks-list {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    max-height: 300px;
-    overflow-y: auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 10px;
 }
 
 .risk-item {
-    padding: 10px 14px;
-    border-radius: 8px;
+    padding: 12px 16px;
+    border-radius: 10px;
     font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
 .risk-item.critical {
@@ -370,36 +413,45 @@ body {
     margin-bottom: 15px;
 }
 
-/* Summary */
+/* ===== Summary ===== */
 .summary-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
     gap: 12px;
 }
 
 .summary-item {
-    padding: 12px;
-    background: var(--bg-secondary);
-    border-radius: 8px;
+    padding: 14px 12px;
+    background: linear-gradient(145deg, var(--bg-secondary), var(--bg-card));
+    border: 1px solid var(--border);
+    border-radius: 10px;
     text-align: center;
+    transition: transform 0.2s, border-color 0.2s;
+}
+
+.summary-item:hover {
+    transform: translateY(-2px);
+    border-color: var(--accent);
 }
 
 .summary-item .label {
-    font-size: 0.75rem;
+    font-size: 0.72rem;
     color: var(--text-secondary);
     display: block;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .summary-item .value {
-    font-size: 1.2rem;
+    font-size: 1.15rem;
     font-weight: bold;
-    margin-top: 4px;
+    margin-top: 6px;
 }
 
 .summary-item .value.positive { color: var(--success); }
 .summary-item .value.negative { color: var(--danger); }
 
-/* Sprints */
+/* ===== Sprints ===== */
 .sprints-list {
     display: flex;
     flex-direction: column;
@@ -421,10 +473,17 @@ body {
     border-color: var(--warning);
 }
 
+.sprint-card.current {
+    border-color: var(--accent);
+    box-shadow: 0 0 12px rgba(108, 99, 255, 0.25);
+}
+
 .sprint-header {
     display: flex;
     justify-content: space-between;
     margin-bottom: 12px;
+    flex-wrap: wrap;
+    gap: 8px;
 }
 
 .sprint-title {
@@ -463,7 +522,7 @@ body {
     color: var(--text-secondary);
 }
 
-/* Deficits */
+/* ===== Deficits ===== */
 .deficits-list {
     display: flex;
     flex-direction: column;
@@ -477,6 +536,8 @@ body {
     background: var(--bg-secondary);
     border-radius: 8px;
     border-left: 4px solid var(--danger);
+    flex-wrap: wrap;
+    gap: 8px;
 }
 
 .deficit-item.critical {
@@ -487,7 +548,7 @@ body {
     border-left-color: var(--warning);
 }
 
-/* What-If */
+/* ===== What-If ===== */
 .whatif-form {
     display: flex;
     flex-direction: column;
@@ -526,7 +587,7 @@ body {
     border-bottom: none;
 }
 
-/* Settings */
+/* ===== Settings ===== */
 .settings-form {
     display: flex;
     gap: 15px;
@@ -534,12 +595,13 @@ body {
     flex-wrap: wrap;
 }
 
-/* Forecast Controls */
+/* ===== Forecast Controls ===== */
 .forecast-controls {
     display: flex;
     gap: 15px;
     align-items: center;
     margin-bottom: 20px;
+    flex-wrap: wrap;
 }
 
 .forecast-controls select {
@@ -548,9 +610,10 @@ body {
     background: var(--bg-secondary);
     color: var(--text-primary);
     border: 1px solid var(--border);
+    min-height: 44px;
 }
 
-/* Scrollbar */
+/* ===== Scrollbar ===== */
 ::-webkit-scrollbar {
     width: 6px;
 }
@@ -564,30 +627,7 @@ body {
     border-radius: 3px;
 }
 
-/* Responsive */
-@media (max-width: 768px) {
-    .dashboard-grid {
-        grid-template-columns: 1fr;
-    }
-    
-    .header {
-        flex-direction: column;
-        gap: 15px;
-    }
-    
-    .add-form {
-        flex-direction: column;
-    }
-    
-    .summary-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-    
-    .sprint-details {
-        grid-template-columns: 1fr;
-    }
-}
-
+/* ===== Chart ===== */
 #forecastChart {
     max-height: 400px;
     display: block;
@@ -598,100 +638,7 @@ body {
     max-height: 500px;
 }
 
-
-/* ===== Dashboard Grid (сбалансированный) ===== */
-.dashboard-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
-}
-
-/* Сводка и риски — на всю ширину */
-.dashboard-grid .summary-card,
-.dashboard-grid .risks-card {
-    grid-column: 1 / -1;
-}
-
-/* Карточки графиков — одинаковая высота, flex-колонка */
-.chart-card {
-    display: flex;
-    flex-direction: column;
-    min-height: 400px;
-}
-
-.chart-card h3 {
-    margin-bottom: 12px;
-}
-
-/* Обёртка ограничивает высоту canvas */
-.chart-wrapper {
-    position: relative;
-    flex: 1;
-    height: 300px;
-    max-height: 300px;
-}
-
-/* ===== Сводка (красивее) ===== */
-.summary-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    gap: 12px;
-}
-
-.summary-item {
-    padding: 14px 12px;
-    background: linear-gradient(145deg, var(--bg-secondary), var(--bg-card));
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    text-align: center;
-    transition: transform 0.2s, border-color 0.2s;
-}
-
-.summary-item:hover {
-    transform: translateY(-2px);
-    border-color: var(--accent);
-}
-
-.summary-item .label {
-    font-size: 0.72rem;
-    color: var(--text-secondary);
-    display: block;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.summary-item .value {
-    font-size: 1.15rem;
-    font-weight: bold;
-    margin-top: 6px;
-}
-
-/* ===== Риски (на всю ширину, в 2 колонки) ===== */
-.risks-list {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 10px;
-    max-height: none;
-    overflow: visible;
-}
-
-.risk-item {
-    padding: 12px 16px;
-    border-radius: 10px;
-    font-size: 0.9rem;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-/* ===== Адаптив ===== */
-@media (max-width: 900px) {
-    .dashboard-grid {
-        grid-template-columns: 1fr;
-    }
-}
-
-/* Баннер необходимого резерва */
+/* ===== Reserve Info ===== */
 .reserve-info {
     margin-top: 15px;
     padding: 14px 18px;
@@ -711,13 +658,7 @@ body {
     color: #ffcdd2;
 }
 
-.sprint-card.current {
-    border-color: var(--accent);
-    box-shadow: 0 0 12px rgba(108, 99, 255, 0.25);
-}
-
-
-/* ===== Модальное окно ===== */
+/* ===== Modal ===== */
 .modal-overlay {
     position: fixed;
     inset: 0;
@@ -726,6 +667,7 @@ body {
     align-items: center;
     justify-content: center;
     z-index: 1000;
+    padding: 20px;
 }
 
 .modal {
@@ -735,6 +677,8 @@ body {
     padding: 24px;
     width: 420px;
     max-width: 92vw;
+    max-height: 90vh;
+    overflow-y: auto;
     display: flex;
     flex-direction: column;
     gap: 14px;
@@ -742,9 +686,15 @@ body {
 }
 
 .modal h3 { color: var(--accent); }
-.modal-actions { display: flex; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
+.modal-actions { 
+    display: flex; 
+    gap: 10px; 
+    flex-wrap: wrap; 
+    justify-content: flex-end;
+    margin-top: 10px;
+}
 
-/* ===== FullCalendar: тёмная тема ===== */
+/* ===== FullCalendar ===== */
 #calendar {
     --fc-border-color: var(--border);
     --fc-page-bg-color: transparent;
@@ -760,6 +710,7 @@ body {
     border: 1px solid var(--border);
     color: var(--text-secondary);
     box-shadow: none !important;
+    min-height: 44px;
 }
 #calendar .fc-button:hover { background: var(--bg-card); color: var(--text-primary); }
 #calendar .fc-button-primary:not(:disabled).fc-button-active,
@@ -779,8 +730,7 @@ body {
 #calendar .fc-event { cursor: pointer; border-radius: 6px; padding: 1px 4px; }
 #calendar .fc-daygrid-day-frame { min-height: 90px; }
 
-
-/* ===== Приватность ===== */
+/* ===== Privacy ===== */
 .privacy-box {
     display: flex;
     gap: 14px;
@@ -816,8 +766,241 @@ body {
 }
 
 .privacy-actions .btn {
-    text-decoration: none;      /* чтобы ссылка-кнопка не подчёркивалась */
+    text-decoration: none;
     display: inline-flex;
     align-items: center;
     gap: 6px;
+}
+
+/* =========================================
+   RESPONSIVE BREAKPOINTS
+   ========================================= */
+
+/* Tablet (≤ 1024px) */
+@media (max-width: 1024px) {
+    .app-container {
+        padding: 16px;
+    }
+    
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .header-right {
+        justify-content: space-between;
+    }
+    
+    .balance-card {
+        flex: 1;
+        min-width: 140px;
+    }
+}
+
+/* Mobile (≤ 768px) */
+@media (max-width: 768px) {
+    .app-container {
+        padding: 12px;
+    }
+    
+    .header {
+        padding: 16px;
+        margin-bottom: 20px;
+    }
+    
+    .header h1 {
+        font-size: 1.5rem;
+    }
+    
+    .subtitle {
+        display: none;
+    }
+    
+    .header-right {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .balance-card {
+        width: 100%;
+    }
+    
+    .balance-input {
+        width: 100%;
+    }
+    
+    .header-user {
+        width: 100%;
+        justify-content: space-between;
+    }
+    
+    .card {
+        padding: 16px;
+        border-radius: 12px;
+    }
+    
+    .card h3 {
+        font-size: 1rem;
+    }
+    
+    .tabs {
+        margin-bottom: 16px;
+        padding: 4px;
+    }
+    
+    .tab {
+        padding: 10px 16px;
+        font-size: 0.85rem;
+    }
+    
+    .add-form {
+        flex-direction: column;
+    }
+    
+    .add-form .input {
+        width: 100%;
+    }
+    
+    .summary-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .sprint-details {
+        grid-template-columns: 1fr;
+    }
+    
+    .event-item {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .event-info {
+        width: 100%;
+    }
+    
+    .event-amount {
+        margin-right: 0;
+    }
+    
+    .modal {
+        padding: 20px;
+        border-radius: 12px;
+    }
+    
+    .modal-actions {
+        flex-direction: column;
+    }
+    
+    .modal-actions .btn {
+        width: 100%;
+    }
+    
+    .forecast-controls {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .forecast-controls label {
+        width: 100%;
+    }
+    
+    .forecast-controls select {
+        width: 100%;
+    }
+    
+    .forecast-controls .btn {
+        width: 100%;
+    }
+    
+    #calendar .fc-toolbar {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    #calendar .fc-toolbar-title {
+        font-size: 1.1rem;
+    }
+    
+    .risks-list {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Small mobile (≤ 480px) */
+@media (max-width: 480px) {
+    .app-container {
+        padding: 8px;
+    }
+    
+    .header {
+        padding: 12px;
+        border-radius: 12px;
+    }
+    
+    .header h1 {
+        font-size: 1.3rem;
+    }
+    
+    .card {
+        padding: 12px;
+        margin-bottom: 12px;
+    }
+    
+    .summary-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .summary-item .value {
+        font-size: 1rem;
+    }
+    
+    .tabs {
+        gap: 3px;
+    }
+    
+    .tab {
+        padding: 8px 12px;
+        font-size: 0.8rem;
+    }
+    
+    .input {
+        font-size: 1rem;
+        padding: 12px;
+    }
+    
+    .btn {
+        font-size: 0.85rem;
+        padding: 12px 16px;
+    }
+    
+    .event-item {
+        padding: 12px;
+    }
+    
+    .sprint-card {
+        padding: 14px;
+    }
+    
+    .chart-wrapper {
+        height: 250px;
+    }
+    
+    .chart-card {
+        min-height: 350px;
+    }
+}
+
+/* Landscape mobile (высота < 500px) */
+@media (max-height: 500px) and (orientation: landscape) {
+    .modal {
+        max-height: 95vh;
+    }
+    
+    .modal-overlay {
+        padding: 10px;
+    }
 }
