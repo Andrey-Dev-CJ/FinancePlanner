@@ -496,23 +496,33 @@ function renderEvents() {
         const isDone = ev.status === 'done';
         const isOverdue = ev.date < today && !isDone;
         const statusClass = isDone ? 'done' : (isOverdue ? 'overdue' : '');
+        const statusIcon = isDone ? '✅' : (isOverdue ? '🔴' : '📌');
         
         return `
             <div class="event-item ${statusClass}">
                 <div class="event-info">
-                    <div class="event-name">${isDone ? '✅' : (isOverdue ? '🔴' : '📌')} ${ev.name}</div>
+                    <div class="event-name">${statusIcon} ${ev.name}</div>
                     <div class="event-date">${formatDate(ev.date)} | ${ev.category || '—'}</div>
                 </div>
-                <div class="event-amount">${formatMoney(ev.amount)}</div>
-                ${!isDone ? `
-                    <button class="btn btn-success" onclick="markEventDone('${ev.id}')">✓</button>
-                    <button class="btn btn-danger" onclick="deleteEvent('${ev.id}')">✕</button>
-                ` : ''}
+                <div class="event-actions">
+                    <div class="event-amount">${formatMoney(ev.amount)}</div>
+                    ${!isDone ? `
+                        <div style="display: flex; gap: 8px;">
+                            <button type="button" class="btn btn-success" 
+                                    onclick="markEventDone('${ev.id}')" 
+                                    aria-label="Отметить выполненным">✓</button>
+                            <button type="button" class="btn btn-danger" 
+                                    onclick="deleteEvent('${ev.id}')" 
+                                    aria-label="Удалить событие">✕</button>
+                        </div>
+                    ` : `
+                        <span style="color: var(--success); font-weight: 600; font-size: 0.9rem;">Выполнено</span>
+                    `}
+                </div>
             </div>
         `;
     }).join('') || '<p class="no-data">Нет событий</p>';
 }
-
 // ==================== CRUD (все вызывают onConfigChanged) ====================
 async function addIncome() {
     const item = {
