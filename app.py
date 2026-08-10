@@ -28,6 +28,14 @@ CORS(app)
 db.init_app(app)
 migrate = Migrate(app, db)
 
+def _sqlite_pragmas(dbapi_conn, _record):
+    """Настройки SQLite на каждое новое соединение."""
+    cur = dbapi_conn.cursor()
+    cur.execute("PRAGMA journal_mode=WAL")   # чтения не блокируют записи
+    cur.execute("PRAGMA synchronous=NORMAL") # быстрее, безопасно при WAL
+    cur.execute("PRAGMA busy_timeout=5000")  # ждать до 5с вместо "database is locked"
+    cur.execute("PRAGMA foreign_keys=ON")
+    cur.close()
 
 
 # ================= ВСПОМОГАТЕЛЬНОЕ =================
@@ -405,6 +413,8 @@ def update_balance():
 
 
 with app.app_context():
+    if app.config['SQLALCHEMY_DATABASE_URI'].startswith('sqlite'):
+        event.listen(db.engine, 'connect', _sqlite_pragmas)  # вешаем ДО create_all
     db.create_all()
 
 
