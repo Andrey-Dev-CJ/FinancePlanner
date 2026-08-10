@@ -1,111 +1,35 @@
 """
-Flask-приложение с авторизацией и per-user данными.
+Flask-приложение с авторизацией и per-user данными в SQLite.
 ТОЛЬКО вызывает MathCore. Никакой бизнес-логики здесь нет.
+Единственный источник правды — база данных (instance/finance.db).
 """
 import os
-import json
 import uuid
-import shutil
 from functools import wraps
+from datetime import datetime, timezone
 
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for
 from flask_cors import CORS
+from flask_migrate import Migrate
+from sqlalchemy import select
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from mathcore import MathCore
-
-from models_db import User, UserConfig, db
-from flask_migrate import Migrate
+from models_db import db, User, UserConfig
 from mathcore.db_adapter import load_config_from_db, save_config_to_db
-
-
-_cores = {}
-
-
-def get_core() -> MathCore:
-    uid = session['uid']
-    if uid not in _cores:
-        user_config = UserConfig.query.get(uid)
-        if not user_config:
-            user_config = UserConfig(user_id=uid, pay_days=[5, 20])
-            db.session.add(user_config)
-            db.session.commit()
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('FINPLAN_SECRET', 'dev-secret-change-me')
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
-CORS(app)
-
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DATA_DIR = os.path.join(BASE_DIR, 'data')
-USERS_FILE = os.path.join(DATA_DIR, 'users.json')
-LEGACY_CONFIG = os.path.join(BASE_DIR, 'config.json')
-os.makedirs(DATA_DIR, exist_ok=True)
-
-
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///finance.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///finance.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
+CORS(app)
 db.init_app(app)
 migrate = Migrate(app, db)
 
-# Создать таблицы при первом запуске
-with app.app_context():
-    db.create_all()
-
-# ================= ПОЛЬЗОВАТЕЛИ И PER-USER ЯДРО =================
-
-def _load_users() -> dict:
-    if not os.path.exists(USERS_FILE):
-        return {}
-    with open(USERS_FILE, 'r', encoding='utf-8') as f:
-        return json.load(f)
-
-def _save_users(users: dict):
-    with open(USERS_FILE, 'w', encoding='utf-8') as f:
-        json.dump(users, f, ensure_ascii=False, indent=2)
-
-def user_config_path(uid: str) -> str:
-    return os.path.join(DATA_DIR, uid, 'config.json')
-
 _cores = {}
 
-def get_core():
-    """Per-user экземпляр MathCore (загрузка из БД)."""
-    uid = session['uid']
-    if uid not in _cores:
-        user_config = db.session.get(UserConfig, uid)
-        if not user_config:
-            # Создаём пустой конфиг для нового пользователя
-            user_config = UserConfig(
-                user_id=uid,
-                initial_balance=0.0,
-                pay_days=[5, 20],
-                reserve_envelopes={}
-            )
-            db.session.add(user_config)
-            db.session.commit()
-        
-        # Загружаем данные из БД в MathCore dataclass-ы
-        cfg = load_config_from_db(user_config)
-        _cores[uid] = MathCore(cfg)
-    
-    return _cores[uid]
-
-
-
-def save_core():
-    """Сохраняет изменения из MathCore обратно в БД."""
-    uid = session['uid']
-    user_config = db.session.get(UserConfig, uid)
-    if not user_config:
-        # Создаём пустой конфиг, если его нет
-        user_config = UserConfig(user_id=uid, pay_days=[5, 20])
-        db.session.add(user_config)
-        db.session.flush()
-    
-    # Конвертируем MathCore dataclass → SQLAlchemy модели и сохраняем
-    save_config_to_db(db.session, user_config, _cores[uid].config)
+# ================= ВСПОМОГАТЕЛЬНОЕ =================
 
 def login_required(f):
     @wraps(f)
@@ -117,13 +41,48 @@ def login_required(f):
         return f(*args, **kwargs)
     return wrapped
 
-# ================= AUTH =================
+def get_core() -> MathCore:
+    """Per-user экземпляр MathCore, загруженный из БД."""
+    uid = session['uid']
+    if uid not in _cores:
+        user_config = db.session.get(UserConfig, uid)
+        if not user_config:
+            user_config = UserConfig(user_id=uid, initial_balance=0.0,
+                                     pay_days=[5, 20], reserve_envelopes={})
+            db.session.add(user_config)
+            db.session.commit()
+        _cores[uid] = MathCore(load_config_from_db(user_config))
+    return _cores[uid]
+
+def save_core():
+    """Сохраняет изменения из MathCore обратно в БД."""
+    uid = session['uid']
+    user_config = db.session.get(UserConfig, uid)
+    if not user_config:
+        user_config = UserConfig(user_id=uid, pay_days=[5, 20], reserve_envelopes={})
+        db.session.add(user_config)
+        db.session.flush()
+    save_config_to_db(db.session, user_config, _cores[uid].config)
+
+# ================= СТРАНИЦЫ =================
 
 @app.route('/')
 def index():
     if 'uid' not in session:
         return render_template('login.html')
     return render_template('index.html')
+
+@app.route('/privacy')
+def privacy():
+    return render_template('privacy.html')
+
+@app.route('/sw.js')
+def service_worker():
+    resp = app.send_static_file('sw.js')
+    resp.headers['Cache-Control'] = 'no-cache'
+    return resp
+
+# ================= AUTH (всё через БД) =================
 
 @app.route('/auth/register', methods=['POST'])
 def register():
@@ -134,17 +93,21 @@ def register():
         return jsonify({'error': 'Логин — минимум 3 символа'}), 400
     if len(password) < 6:
         return jsonify({'error': 'Пароль — минимум 6 символов'}), 400
-    users = _load_users()
-    if username in users:
+    if not data.get('consent'):
+        return jsonify({'error': 'Для создания аккаунта нужно согласие с политикой конфиденциальности'}), 400
+    if db.session.execute(select(User).filter_by(username=username)).scalar_one_or_none():
         return jsonify({'error': 'Такой логин уже занят'}), 400
-    first_user = len(users) == 0
+
     uid = str(uuid.uuid4())[:8]
-    users[username] = {'uid': uid, 'hash': generate_password_hash(password)}
-    _save_users(users)
-    os.makedirs(os.path.join(DATA_DIR, uid), exist_ok=True)
-    # Первый пользователь (владелец) автоматически получает старый конфиг
-    if first_user and os.path.exists(LEGACY_CONFIG):
-        shutil.copy(LEGACY_CONFIG, user_config_path(uid))
+    now = datetime.now(timezone.utc)
+    user = User(id=uid, username=username,
+                password_hash=generate_password_hash(password),
+                created_at=now, consent_at=now)
+    db.session.add(user)
+    db.session.add(UserConfig(user_id=uid, initial_balance=0.0,
+                              pay_days=[5, 20], reserve_envelopes={}))
+    db.session.commit()
+
     session['uid'] = uid
     session['username'] = username
     return jsonify({'status': 'ok'})
@@ -154,11 +117,11 @@ def login():
     data = request.json or {}
     username = (data.get('username') or '').strip()
     password = data.get('password') or ''
-    user = _load_users().get(username)
-    if not user or not check_password_hash(user['hash'], password):
+    user = db.session.execute(select(User).filter_by(username=username)).scalar_one_or_none()
+    if not user or not check_password_hash(user.password_hash, password):
         return jsonify({'error': 'Неверный логин или пароль'}), 400
-    session['uid'] = user['uid']
-    session['username'] = username
+    session['uid'] = user.id
+    session['username'] = user.username
     return jsonify({'status': 'ok'})
 
 @app.route('/auth/logout', methods=['POST'])
@@ -166,79 +129,60 @@ def logout():
     session.clear()
     return jsonify({'status': 'ok'})
 
-
-# ================= УПРАВЛЕНИЕ АККАУНТОМ =================
-
 @app.route('/auth/change-password', methods=['POST'])
 @login_required
 def change_password():
-    """Смена пароля: текущий + новый, с проверкой длины."""
     data = request.json or {}
     current = data.get('current_password', '')
     new = data.get('new_password', '')
     if len(new) < 6:
         return jsonify({'error': 'Новый пароль — минимум 6 символов'}), 400
-    users = _load_users()
-    user = users.get(session['username'])
-    if not user or not check_password_hash(user['hash'], current):
+    user = db.session.get(User, session['uid'])
+    if not user or not check_password_hash(user.password_hash, current):
         return jsonify({'error': 'Текущий пароль неверен'}), 400
-    user['hash'] = generate_password_hash(new)
-    _save_users(users)
+    user.password_hash = generate_password_hash(new)
+    db.session.commit()
     return jsonify({'status': 'ok'})
 
 @app.route('/auth/change-username', methods=['POST'])
 @login_required
 def change_username():
-    """Смена логина (uid и данные сохраняются)."""
     data = request.json or {}
     new_name = (data.get('new_username') or '').strip()
     password = data.get('password', '')
     if len(new_name) < 3:
         return jsonify({'error': 'Логин — минимум 3 символа'}), 400
-    users = _load_users()
-    if new_name in users:
+    if db.session.execute(select(User).filter_by(username=new_name)).scalar_one_or_none():
         return jsonify({'error': 'Такой логин уже занят'}), 400
-    user = users.get(session['username'])
-    if not user or not check_password_hash(user['hash'], password):
+    user = db.session.get(User, session['uid'])
+    if not user or not check_password_hash(user.password_hash, password):
         return jsonify({'error': 'Пароль неверен'}), 400
-    users[new_name] = users.pop(session['username'])
-    _save_users(users)
+    user.username = new_name
+    db.session.commit()
     session['username'] = new_name
     return jsonify({'status': 'ok'})
 
 @app.route('/auth/delete-account', methods=['POST'])
 @login_required
 def delete_account():
-    """Удаление аккаунта вместе со всеми данными."""
     data = request.json or {}
-    users = _load_users()
-    user = users.get(session['username'])
-    if not user or not check_password_hash(user['hash'], data.get('password', '')):
+    user = db.session.get(User, session['uid'])
+    if not user or not check_password_hash(user.password_hash, data.get('password', '')):
         return jsonify({'error': 'Пароль неверен'}), 400
-    uid = user['uid']
-    del users[session['username']]
-    _save_users(users)
-    user_dir = os.path.join(DATA_DIR, uid)
-    if os.path.isdir(user_dir):
-        shutil.rmtree(user_dir)          # стираем конфиг пользователя
+    uid = user.id
+    cfg = db.session.get(UserConfig, uid)
+    if cfg:
+        db.session.delete(cfg)   # cascade удалит доходы/расходы/события
+    db.session.delete(user)
+    db.session.commit()
     _cores.pop(uid, None)
     session.clear()
     return jsonify({'status': 'ok'})
-
-
 
 @app.route('/api/me')
 @login_required
 def me():
     return jsonify({'username': session.get('username', '')})
-
-# ================= PWA =================
-
-@app.route('/sw.js')
-def service_worker():
-    resp = app.send_static_file('sw.js')
-    resp.headers['Cache-Control'] = 'no-cache'
-    return resp
 
 # ================= ДАННЫЕ =================
 
@@ -456,17 +400,15 @@ def update_balance():
     return jsonify({'status': 'ok'})
 
 
+with app.app_context():
+    db.create_all()
 
-@app.route('/privacy')
-def privacy():
-    """Публичная страница политики конфиденциальности."""
-    return render_template('privacy.html')
 
 if __name__ == '__main__':
     print("=" * 50)
-    print("  💰 Финансовый Планировщик (multi-user)")
+    print("  💰 Финансовый Планировщик (multi-user, SQLite)")
     print("  📍 http://localhost:5000")
-    print("  🧮 MathCore v1.1 + auth")
+    print("  🧮 MathCore v1.1 + auth + DB")
     print("=" * 50)
     app.run(
         host='0.0.0.0',
