@@ -457,7 +457,7 @@ function renderIncome() {
             <td data-label="Сумма">${formatMoney(item.amount)}</td>
             <td data-label="День">${item.day_of_month}-е число</td>
             <td data-label="Активен">${item.active ? '✅' : '❌'}</td>
-            <td class="td-actions"><button type="button" class="btn btn-danger" onclick="deleteIncome('${item.id}')" aria-label="Удалить">✕</button></td>
+            <td><button type="button" class="btn btn-danger" onclick="deleteIncome('${item.id}')" aria-label="Удалить">✕</button></td>
         </tr>
     `).join('') || '<tr><td colspan="5" class="no-data">Нет доходов</td></tr>';
 }
@@ -470,7 +470,7 @@ function renderFixedExpenses() {
             <td data-label="Сумма">${formatMoney(item.amount)}</td>
             <td data-label="День">${item.day_of_month}-е число</td>
             <td data-label="Категория">${item.category || '—'}</td>
-            <td class="td-actions"><button type="button" class="btn btn-danger" onclick="deleteFixedExpense('${item.id}')" aria-label="Удалить">✕</button></td>
+            <td><button type="button" class="btn btn-danger" onclick="deleteFixedExpense('${item.id}')" aria-label="Удалить">✕</button></td>
         </tr>
     `).join('') || '<tr><td colspan="5" class="no-data">Нет расходов</td></tr>';
 }
@@ -482,7 +482,7 @@ function renderVariableExpenses() {
             <td data-label="Название">${item.name}</td>
             <td data-label="Сумма/мес">${formatMoney(item.amount_per_month)}</td>
             <td data-label="Категория">${item.category || '—'}</td>
-            <td class="td-actions"><button type="button" class="btn btn-danger" onclick="deleteVariableExpense('${item.id}')" aria-label="Удалить">✕</button></td>
+            <td><button type="button" class="btn btn-danger" onclick="deleteVariableExpense('${item.id}')" aria-label="Удалить">✕</button></td>
         </tr>
     `).join('') || '<tr><td colspan="4" class="no-data">Нет расходов</td></tr>';
 }
