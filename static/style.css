@@ -1048,3 +1048,22 @@ body {
         height: 350px;
     }
 }
+
+
+
+
+.chart-wrapper {
+    position: relative;      /* обязательно для Chart.js */
+    height: 300px;           /* фиксированная высота — ломает цикл роста */
+    width: 100%;
+    overflow: hidden;
+}
+
+.chart-tall {
+    height: 380px;
+}
+
+@media (max-width: 768px) {
+    .chart-wrapper { height: 240px; }
+    .chart-tall    { height: 300px; }
+}

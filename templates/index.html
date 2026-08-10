@@ -20,7 +20,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
-    <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="/static/style.css?v=4">
     
 </head>
 <body>
@@ -33,22 +33,22 @@
             </div>
             <div class="header-right">
                 <div class="balance-card">
-                    <div class="balance-input-wrapper">
+                    <span class="balance-label">Текущий баланс</span>
+                    <div class="balance-row">
                         <input type="number" id="currentBalance" class="balance-input" value="0">
-                        <button class="btn-mini" onclick="updateBalance()">✓</button>
+                        <button class="btn-mini" onclick="updateBalance()" aria-label="Сохранить баланс">✓</button>
                     </div>
                 </div>
-                
                 <div class="balance-card credit">
                     <span class="balance-label">Резервы</span>
-                    <div class="balance-input-wrapper"></div>
+                    <div class="balance-row">
                         <input type="number" id="reserveEnvelopes" class="balance-input" value="0">
-                        <button class="btn-mini" onclick="updateReserve()">✓</button>
+                        <button class="btn-mini" onclick="updateReserve()" aria-label="Сохранить резервы">✓</button>
                     </div>
-                </div>  
+                </div>
                 <div class="header-user">
-                        <span id="userName" style="color:var(--text-secondary);font-size:.9rem;"></span>
-                        <button class="btn" id="logoutBtn" style="display:none;">Выйти</button>
+                    <span id="userName"></span>
+                    <button class="btn" id="logoutBtn">Выйти</button>
                 </div>
             </div>
         </header>
@@ -115,7 +115,9 @@
                     </label>
                     <button class="btn btn-primary" onclick="refreshForecast()">Обновить</button>
                 </div>
-                <canvas id="forecastChart" height="400"></canvas>
+                <div class="chart-wrapper chart-tall">
+                    <canvas id="forecastChart"></canvas>
+                </div>
                 <div id="reserveInfo" class="reserve-info"></div>
             </div>
             <div class="card">
@@ -209,7 +211,7 @@
                     <input type="number" id="incDay" placeholder="День (1-31)" min="1" max="31" class="input">
                     <button class="btn btn-primary" onclick="addIncome()">+ Добавить</button>
                 </div>
-                <div class="data-table-wrapper">
+                <div class="table-wrap">
                     <table class="data-table">
                         <thead>
                             <tr><th>Название</th><th>Сумма</th><th>День</th><th>Активен</th><th></th></tr>
@@ -233,7 +235,7 @@
                     <input type="text" id="feCategory" placeholder="Категория" class="input">
                     <button class="btn btn-primary" onclick="addFixedExpense()">+ Добавить</button>
                 </div>
-                <div class="data-table-wrapper">
+                <div class="table-wrap">
                     <table class="data-table">
                         <thead>
                             <tr><th>Название</th><th>Сумма</th><th>День</th><th>Категория</th><th></th></tr>
@@ -252,7 +254,7 @@
                     <input type="text" id="veCategory" placeholder="Категория" class="input">
                     <button class="btn btn-primary" onclick="addVariableExpense()">+ Добавить</button>
                 </div>
-                <div class="data-table-wrapper">
+                <div class="table-wrap">
                     <table class="data-table">
                         <thead>
                             <tr><th>Название</th><th>Сумма/мес</th><th>Категория</th><th></th></tr>
@@ -387,8 +389,8 @@
     </div>
     
     <!--<script src="/static/app.js"></script>-->
-    <script src="/static/app.js?v=3"></script>
-    <script src="/static/calendar.js?v=3"></script>
+    <script src="/static/app.js?v=4"></script>
+    <script src="/static/calendar.js?v=4"></script>
     <script>
         if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js');
     </script>

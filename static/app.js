@@ -453,11 +453,11 @@ function renderIncome() {
     const tbody = document.getElementById('incomeTable');
     tbody.innerHTML = config.income_sources.map(item => `
         <tr>
-            <td>${item.name}</td>
-            <td>${formatMoney(item.amount)}</td>
-            <td>${item.day_of_month}-е число</td>
-            <td>${item.active ? '✅' : '❌'}</td>
-            <td><button class="btn btn-danger" onclick="deleteIncome('${item.id}')">✕</button></td>
+            <td data-label="Название">${item.name}</td>
+            <td data-label="Сумма">${formatMoney(item.amount)}</td>
+            <td data-label="День">${item.day_of_month}-е число</td>
+            <td data-label="Активен">${item.active ? '✅' : '❌'}</td>
+            <td class="td-actions"><button type="button" class="btn btn-danger" onclick="deleteIncome('${item.id}')" aria-label="Удалить">✕</button></td>
         </tr>
     `).join('') || '<tr><td colspan="5" class="no-data">Нет доходов</td></tr>';
 }
@@ -466,11 +466,11 @@ function renderFixedExpenses() {
     const tbody = document.getElementById('fixedExpensesTable');
     tbody.innerHTML = config.fixed_expenses.map(item => `
         <tr>
-            <td>${item.name}</td>
-            <td>${formatMoney(item.amount)}</td>
-            <td>${item.day_of_month}-е число</td>
-            <td>${item.category || '—'}</td>
-            <td><button class="btn btn-danger" onclick="deleteFixedExpense('${item.id}')">✕</button></td>
+            <td data-label="Название">${item.name}</td>
+            <td data-label="Сумма">${formatMoney(item.amount)}</td>
+            <td data-label="День">${item.day_of_month}-е число</td>
+            <td data-label="Категория">${item.category || '—'}</td>
+            <td class="td-actions"><button type="button" class="btn btn-danger" onclick="deleteFixedExpense('${item.id}')" aria-label="Удалить">✕</button></td>
         </tr>
     `).join('') || '<tr><td colspan="5" class="no-data">Нет расходов</td></tr>';
 }
@@ -479,10 +479,10 @@ function renderVariableExpenses() {
     const tbody = document.getElementById('variableExpensesTable');
     tbody.innerHTML = config.variable_expenses.map(item => `
         <tr>
-            <td>${item.name}</td>
-            <td>${formatMoney(item.amount_per_month)}</td>
-            <td>${item.category || '—'}</td>
-            <td><button class="btn btn-danger" onclick="deleteVariableExpense('${item.id}')">✕</button></td>
+            <td data-label="Название">${item.name}</td>
+            <td data-label="Сумма/мес">${formatMoney(item.amount_per_month)}</td>
+            <td data-label="Категория">${item.category || '—'}</td>
+            <td class="td-actions"><button type="button" class="btn btn-danger" onclick="deleteVariableExpense('${item.id}')" aria-label="Удалить">✕</button></td>
         </tr>
     `).join('') || '<tr><td colspan="4" class="no-data">Нет расходов</td></tr>';
 }
