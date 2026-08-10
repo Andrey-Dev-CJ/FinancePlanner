@@ -14,11 +14,10 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 from mathcore import MathCore
 
-from models_db import db
+from models_db import User, UserConfig, db
 from flask_migrate import Migrate
-
-from models_db import User, UserConfig
 from mathcore.db_adapter import load_config_from_db, save_config_to_db
+
 
 _cores = {}
 
@@ -71,22 +70,42 @@ def user_config_path(uid: str) -> str:
 
 _cores = {}
 
-def get_core() -> MathCore:
-    """Per-user экземпляр MathCore (кэш в памяти)."""
+def get_core():
+    """Per-user экземпляр MathCore (загрузка из БД)."""
     uid = session['uid']
     if uid not in _cores:
-        path = user_config_path(uid)
-        if os.path.exists(path):
-            _cores[uid] = MathCore.from_config_file(path)
-        else:
-            os.makedirs(os.path.join(DATA_DIR, uid), exist_ok=True)
-            _cores[uid] = MathCore.empty()
-            _cores[uid].save_config(path)
+        user_config = db.session.get(UserConfig, uid)
+        if not user_config:
+            # Создаём пустой конфиг для нового пользователя
+            user_config = UserConfig(
+                user_id=uid,
+                initial_balance=0.0,
+                pay_days=[5, 20],
+                reserve_envelopes={}
+            )
+            db.session.add(user_config)
+            db.session.commit()
+        
+        # Загружаем данные из БД в MathCore dataclass-ы
+        cfg = load_config_from_db(user_config)
+        _cores[uid] = MathCore(cfg)
+    
     return _cores[uid]
 
+
+
 def save_core():
+    """Сохраняет изменения из MathCore обратно в БД."""
     uid = session['uid']
-    _cores[uid].save_config(user_config_path(uid))
+    user_config = db.session.get(UserConfig, uid)
+    if not user_config:
+        # Создаём пустой конфиг, если его нет
+        user_config = UserConfig(user_id=uid, pay_days=[5, 20])
+        db.session.add(user_config)
+        db.session.flush()
+    
+    # Конвертируем MathCore dataclass → SQLAlchemy модели и сохраняем
+    save_config_to_db(db.session, user_config, _cores[uid].config)
 
 def login_required(f):
     @wraps(f)
